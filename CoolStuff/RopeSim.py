@@ -3,6 +3,7 @@ import time
 import random
 from Vector2 import Vector2
 class Point:
+	collisionPadding = 10
 	gravity = Vector2.down()*9.81*100
 	def __init__(self,position, locked = False):
 		self.position = position
@@ -15,7 +16,16 @@ class Point:
 			newPrevPosition = self.position
 			self.position += self.position - self.prevPosition
 			self.position += Point.gravity * deltaTime * deltaTime
+
+			#wall collisions
+			self.position.y = min(max(self.position.y, -screenSize.y/2 +  Point.collisionPadding),screenSize.y/2- Point.collisionPadding)
+			newPrevPosition.y = min(max(newPrevPosition.y, -screenSize.y/2 +  Point.collisionPadding),screenSize.y/2 -  Point.collisionPadding)
+			self.position.x = min(max(self.position.x, -screenSize.x/2 +  Point.collisionPadding),screenSize.x/2- Point.collisionPadding)
+			newPrevPosition.x = min(max(newPrevPosition.x, -screenSize.x/2 +  Point.collisionPadding),screenSize.x/2 -  Point.collisionPadding)
+
 			self.prevPosition = newPrevPosition
+		elif(draggedPoint == self):
+			self.prevPosition = self.position
 	def Draw(self,trt):
 		trt.penup()
 		trt.goto(self.position.x, self.position.y)
@@ -71,32 +81,35 @@ screen = Screen()
 screen.colormode(255)
 canvas = getcanvas()
 connectionPoint = None
-
 points = []
 constraints = []
 draggedPointWasLocked = False
 draggedPoint = None
 SimRunning = False
-
+screenSize = None
 connectedMode = False
 prevPlacedPoint = None
 
 def UpdateCycle(points, constraints, trt):
-	fixedDeltaTime = 0.02
+	global screenSize
+	fixedDeltaTime = 0.01
 	constraintIterCount = 10
 
+	avFps = 1/fixedDeltaTime
 	deltaTime = fixedDeltaTime
 	while SimRunning:
+		screenSize = Vector2(window_width(),window_height())
 		start = time.time()
 		trt.clear()
+		for point in points:
+			point.EulerStep(deltaTime)
 		if(draggedPoint != None):
 			target = Vector2(canvas.winfo_pointerx() - canvas.winfo_rootx(), -(canvas.winfo_pointery() - canvas.winfo_rooty()))
-			screenSize = Vector2(window_width(),window_height())
+			
 			target.y += screenSize.y*0.5
 			target.x -= screenSize.x*0.5
 			draggedPoint.position = target
-		for point in points:
-			point.EulerStep(deltaTime)
+		
 		for i in range(constraintIterCount):
 			for constraint in constraints:
 				constraint.Update()
@@ -110,7 +123,8 @@ def UpdateCycle(points, constraints, trt):
 		end = time.time()
 		executionTime = end - start
 		deltaTime = max(executionTime,fixedDeltaTime)
-
+		avFps = (avFps + 1/deltaTime)/2
+		print(avFps)
 		time.sleep(max(fixedDeltaTime - executionTime, 0))
 
 
