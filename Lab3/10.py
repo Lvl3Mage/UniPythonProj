@@ -7,29 +7,29 @@ for i in range(matSize):
 		row.append(int(input("Enter the value of the cell ({0}, {1}): ".format(j, i))))
 	mat.append(row)
 
-itr = 0
 isLat = True
 idY = 0
 while(idY < len(mat) and isLat):
 	idX = 0
 	while(idX < len(mat[idY]) and isLat):
+		# for every element in the matrix
 		val = mat[idY][idX]
 		isLat = val > 0 and val <= len(mat)
-		i = 0
+		i = idX+1
+
+		#check elements to the right in the current row for identical values
 		while(i < len(mat[idY]) and isLat):
-			if(i != idX):
-				isLat = mat[idY][i] != val
+			isLat = mat[idY][i] != val
 			i+=1
 		
-		i = 0
+		i = idY+1
+		#check elements below in thr current column for identical values
 		while(i < len(mat) and isLat):
-			if(i != idY):
-				isLat = mat[i][idX] != val
+			isLat = mat[i][idX] != val
 			i+=1
 		
 		idX += 1
 	idY +=1
-print(itr)
 if(isLat):
 	print("The matrix is a latin square")
 else: 

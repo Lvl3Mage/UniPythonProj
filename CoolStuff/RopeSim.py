@@ -31,9 +31,16 @@ class Point:
 		trt.goto(self.position.x, self.position.y)
 		trt.pendown()
 		if(self.locked):
-			trt.dot(6, (200,122,122))
+			trt.color((200,122,122))
 		else:
-			trt.dot(6, (122,122,122))
+			trt.color((122,122,122))
+		trt.dot(6)
+	def Highlight(self, trt):
+		trt.color((0,0,0))
+		trt.penup()
+		trt.goto(self.position.x, self.position.y - 10)
+		trt.pendown()
+		trt.circle(10)
 class Constraint:
 	def __init__(self,pointA, pointB, length = None):
 
@@ -46,7 +53,8 @@ class Constraint:
 	def __str__(self):
 		return "Constraint between {0} - {1}".format(pointA,pointB)
 	def Update(self):
-		if((self.pointB.position - self.pointA.position).Length() > self.length*2):
+		curLengthSqr = (self.pointB.position - self.pointA.position).LengthSqr()
+		if(curLengthSqr > (self.length*2)**2 or curLengthSqr < (self.length*0.5)**2):
 			for i in range(len(constraints)):
 				if(constraints[i] == self):
 					constraints.pop(i)
@@ -80,15 +88,15 @@ trt.hideturtle()
 screen = Screen()
 screen.colormode(255)
 canvas = getcanvas()
-connectionPoint = None
+
 points = []
 constraints = []
-draggedPointWasLocked = False
+draggedPointPrevState = False
 draggedPoint = None
 SimRunning = False
 screenSize = None
-connectedMode = False
-prevPlacedPoint = None
+
+selectedPoint = None
 
 def UpdateCycle(points, constraints, trt):
 	global screenSize
@@ -130,11 +138,6 @@ def UpdateCycle(points, constraints, trt):
 
 
 
-
-
-
-
-
 def closestPointID(pos):
 	closestId = -1
 	closestDistSqr = float('inf')
@@ -148,7 +151,7 @@ def closestPointID(pos):
 
 def ToggleDrag(x,y):
 	global draggedPoint
-	global draggedPointWasLocked
+	global draggedPointPrevState
 	if(draggedPoint == None):
 		clickPoint = Vector2(x,y)
 		closestId = closestPointID(clickPoint)
@@ -157,10 +160,10 @@ def ToggleDrag(x,y):
 			if(distSqr < 45**2):
 				
 				draggedPoint = points[closestId]
-				draggedPointWasLocked = draggedPoint.locked
+				draggedPointPrevState = draggedPoint.locked
 				draggedPoint.locked = True
 	else:
-		draggedPoint.locked = draggedPointWasLocked
+		draggedPoint.locked = draggedPointPrevState
 		draggedPoint = None
 # Interseciton code
 	# def intersection(p1,dir1,p2,dir2):
@@ -176,16 +179,56 @@ def ToggleDrag(x,y):
 
 # EDITOR
 def RedrawScene():
+	global selectedPoint
 	trt.clear()
+	if(selectedPoint != None):
+		selectedPoint.Highlight(trt)
 	for constraint in constraints:
 		constraint.Draw(trt)
 	for point in points:
 		point.Draw(trt)
+	print(selectedPoint)
+	
 
+def AddPointAt(x,y):
+	global selectedPoint
+	clickPoint = Vector2(x,y)
+	closestId = closestPointID(clickPoint)
+	if(closestId >= 0):
+		distSqr = (points[closestId].position - clickPoint).LengthSqr()
+		if(distSqr < 15**2):
+			if(selectedPoint != None):
+				if(selectedPoint != points[closestId]):
+					PointToPointConstraint(selectedPoint, points[closestId])
+					selectedPoint = points[closestId]
+				else:
+					selectedPoint = None	
+			else:
+				selectedPoint = points[closestId]
+			RedrawScene()
+			return
 
-def clickLeft(x, y):
-	global connectedMode
-	global prevPlacedPoint
+	newPoint = Point(clickPoint)
+	if(selectedPoint != None):
+		PointToPointConstraint(selectedPoint, newPoint)
+		selectedPoint = newPoint
+	points.append(newPoint)
+	RedrawScene()
+
+def PointToPointConstraint(pointA, pointB):
+	if(pointA == pointB):
+		return
+	constraintExists = False
+	for constraint in constraints:
+		if(constraint.pointA == pointA and constraint.pointB == pointB or constraint.pointA == pointB and constraint.pointB == pointA):
+			constraintExists = True
+			break
+	if(not constraintExists):
+		constraints.append(Constraint(pointA, pointB))
+	else:
+		print("Constraint exists")
+def CreateConstraintTo(x, y):
+	global selectedPoint
 	clickPoint = Vector2(x,y)
 	closestId = closestPointID(clickPoint)
 	if(closestId >= 0):
@@ -193,37 +236,12 @@ def clickLeft(x, y):
 		if(distSqr < 15**2):
 			points[closestId].locked = not points[closestId].locked
 			RedrawScene()
-			return
+		else:
+			selectedPoint = None
+			RedrawScene()
 
-	newPoint = Point(clickPoint)
-	# check if clicking on point -- toggle point lock
-	if(connectedMode):
-		if(prevPlacedPoint != None):
-			constraints.append(Constraint(prevPlacedPoint, newPoint))
-		prevPlacedPoint = newPoint
-	points.append(newPoint)
-	RedrawScene()
-
-def clickRight(x, y):
-	global connectionPoint
-	clickPoint = Vector2(x,y)
-	closestId = closestPointID(clickPoint)
-	if(closestId >= 0):
-		distSqr = (points[closestId].position - clickPoint).LengthSqr()
-		if(distSqr < 15**2):
-			print(connectionPoint)
-			if(connectionPoint == None):
-				connectionPoint = points[closestId]
-			else:
-				if(connectionPoint != points[closestId]):
-
-					constraints.append(Constraint(connectionPoint, points[closestId]))
-					connectionPoint = None
-					RedrawScene()
-
-def clickMiddle(x, y):
-	global connectionPoint
-	global prevPlacedPoint
+def RemovePointAt(x, y):
+	global selectedPoint
 	clickPoint = Vector2(x,y)
 
 	closestId = closestPointID(clickPoint)
@@ -234,28 +252,11 @@ def clickMiddle(x, y):
 			for i in range(len(constraints)-1, -1, -1):
 				if(constraints[i].pointA == closestPoint or constraints[i].pointB == closestPoint):
 					constraints.pop(i)
-			if(connectionPoint == closestPoint):
-				connectionPoint = None
-			if(prevPlacedPoint == closestPoint):
-				prevPlacedPoint = None
+			if(selectedPoint == closestPoint):
+				selectedPoint = None
 			points.pop(closestId)
 			RedrawScene()
 			return
-	# minConDistSqr = float('inf')
-	# minConID = -1
-	# for i in range(len(constraints)):
-	# 	conDir = constraints[i].pointB.position - constraints[i].pointA.position
-	# 	interectPoint = intersection(constraints[i].pointA.position, conDir, clickPoint, conDir.PerpL())
-	# 	print(interectPoint)
-	# 	distSqr = (clickPoint - interectPoint).LengthSqr()
-	# 	if(distSqr < minConDistSqr):
-	# 		minConID = i
-	# 		minConDistSqr = distSqr
-	# print(minConDistSqr)
-	# if(minConID >= 0):
-	# 	if(minConDistSqr < 15**2):
-	# 		constraints.pop(minConID)
-	# 		RedrawScene()
 
 def ToggleSim():
 	global SimRunning
@@ -269,25 +270,24 @@ def ToggleSim():
 		UpdateCycle(points, constraints, trt)
 
 
-def ToggleConnectedMode():
-	global connectedMode
-	global prevPlacedPoint
-	connectedMode = not connectedMode
-	prevPlacedPoint = None
+
+
 def EnableEditor():
-	global connectionPoint
-	connectionPoint = None
-	prevPlacedPoint = None
-	screen.onclick(clickLeft,  btn=1)
-	screen.onclick(clickMiddle, btn=2)
-	screen.onclick(clickRight, btn=3)
-	screen.onkey(ToggleConnectedMode, 'c')
+	global draggedPoint, draggedPointPrevState
+	if(draggedPoint != None):
+		draggedPoint.locked = draggedPointPrevState
+		draggedPoint = None
+	global selectedPoint
+	selectedPoint = None
+	screen.onclick(AddPointAt,  btn=1)
+	screen.onclick(RemovePointAt, btn=2)
+	screen.onclick(CreateConstraintTo, btn=3)
+	RedrawScene()
 
 def DisableEditor():
 	screen.onclick(ToggleDrag, btn=1)
 	screen.onclick(None, btn=2)
 	screen.onclick(None, btn=3)
-	screen.onkey(None, 'c')
 
 
 EnableEditor()
