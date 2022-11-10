@@ -269,7 +269,25 @@ def ToggleSim():
 		DisableEditor()
 		UpdateCycle(points, constraints, trt)
 
-
+def AddMatrix(rows, columns, spacing):
+	global points, constraints
+	matPoints = []
+	for i in range(rows):
+		for j in range(columns):
+			lock = False
+			if(i == 0):
+				lock = j % 5 == 0 or j == columns-1
+			matPoints.append(Point(Vector2((j-(columns/2))*spacing,(-i+(rows/2))*spacing), lock))
+	points += matPoints
+	matConstraints = []
+	for i in range(rows):
+		for j in range(columns):
+			if(j < columns-1):
+				matConstraints.append(Constraint(matPoints[columns*i+ j],matPoints[columns*i+j+1]))
+			if(i < (rows - 1)):
+				matConstraints.append(Constraint(matPoints[columns*i + j],matPoints[columns*i+j+columns]))
+	constraints += matConstraints
+# AddMatrix(7,15,15)
 
 
 def EnableEditor():
