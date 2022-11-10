@@ -22,18 +22,34 @@ sumArr = []
 if(len(nums1) != len(nums2)):
 	print("Numbers have a different amount of digits")
 else:
+	# Either way works fine
 	carry = 0
+	sumArr = [0] * len(nums1)
 	for i in range(len(nums1)-1, -1, -1):
 		total = nums1[i] + nums2[i] + carry
 		carry = 0
 		if(total > 9):
 			carry = 1
 			total -= 10
-		sumArr.append(total)
+		sumArr[i] = total
 	if(carry > 0):
-		sumArr.append(carry)
-	for i in range(len(sumArr)//2):
-		temp = sumArr[i]
-		sumArr[i] = sumArr[-i-1]
-		sumArr[-i-1] = temp
+		sumArr = [carry] + sumArr
 	print(sumArr)
+
+	# Either way works fine
+	
+	# carry = 0
+	# for i in range(len(nums1)-1, -1, -1):
+	# 	total = nums1[i] + nums2[i] + carry
+	# 	carry = 0
+	# 	if(total > 9):
+	# 		carry = 1
+	# 		total -= 10
+	# 	sumArr.append(total)
+	# if(carry > 0):
+	# 	sumArr.append(carry)
+	# for i in range(len(sumArr)//2):
+	# 	temp = sumArr[i]
+	# 	sumArr[i] = sumArr[-i-1]
+	# 	sumArr[-i-1] = temp
+	# print(sumArr)
