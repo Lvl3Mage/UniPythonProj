@@ -12,6 +12,7 @@ for i in range(digitCount, 0,-1):
 	
 print(nums)
 
+
 # shift = 1
 # while num / shift > 1:
 # 	shiftedVal = math.floor(num/shift)

@@ -42,10 +42,11 @@ class Point:
 		trt.pendown()
 		trt.circle(10)
 class Constraint:
-	def __init__(self,pointA, pointB, length = None):
+	def __init__(self,pointA, pointB, length = None, strength = 0.9):
 
 		self.pointA = pointA
 		self.pointB = pointB
+		self.strength = strength
 		if(length == None):
 			self.length = (pointA.position - pointB.position).Length()
 		else:
@@ -54,7 +55,7 @@ class Constraint:
 		return "Constraint between {0} - {1}".format(pointA,pointB)
 	def Update(self):
 		curLengthSqr = (self.pointB.position - self.pointA.position).LengthSqr()
-		if(curLengthSqr > (self.length*2)**2 or curLengthSqr < (self.length*0.5)**2):
+		if(curLengthSqr > (self.length*(1/(1-self.strength)))**2 or curLengthSqr < (self.length*(1-self.strength))**2):
 			for i in range(len(constraints)):
 				if(constraints[i] == self):
 					constraints.pop(i)
@@ -287,7 +288,7 @@ def AddMatrix(rows, columns, spacing):
 			if(i < (rows - 1)):
 				matConstraints.append(Constraint(matPoints[columns*i + j],matPoints[columns*i+j+columns]))
 	constraints += matConstraints
-# AddMatrix(7,15,15)
+AddMatrix(15,5,15)
 
 
 def EnableEditor():
