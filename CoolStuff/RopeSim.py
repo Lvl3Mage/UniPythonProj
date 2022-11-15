@@ -1,6 +1,7 @@
 from turtle import *
 import time
 import random
+import math
 from Vector2 import Vector2
 class Point:
 	collisionPadding = 10
@@ -11,16 +12,27 @@ class Point:
 		self.locked = locked
 	def __str__(self):
 		return str(self.position)
-	def EulerStep(self, deltaTime):
+	def EulerStep(self, deltaTime, lastDeltaTime):
 		if(not self.locked):
+			frameTimeChange = lastDeltaTime/deltaTime
 			newPrevPosition = self.position
-			self.position += self.position - self.prevPosition
+			self.position += (self.position - self.prevPosition)*frameTimeChange
 			self.position += Point.gravity * deltaTime * deltaTime
 
 			#wall collisions
+			if(self.position.y < -screenSize.y/2+Point.collisionPadding or self.position.y > screenSize.y/2-Point.collisionPadding):
+				movementX = newPrevPosition.x - self.position.x
+				movementX *= 0.5*deltaTime
+				newPrevPosition.x = self.position.x - movementX
+			if(self.position.x < -screenSize.x/2-Point.collisionPadding or self.position.x > screenSize.x/2+Point.collisionPadding):
+				movementY = newPrevPosition.y - self.position.y
+				movementY *= 0.5*deltaTime
+				newPrevPosition.y = self.position.y - movementY
 			self.position.y = min(max(self.position.y, -screenSize.y/2 +  Point.collisionPadding),screenSize.y/2- Point.collisionPadding)
-			newPrevPosition.y = min(max(newPrevPosition.y, -screenSize.y/2 +  Point.collisionPadding),screenSize.y/2 -  Point.collisionPadding)
 			self.position.x = min(max(self.position.x, -screenSize.x/2 +  Point.collisionPadding),screenSize.x/2- Point.collisionPadding)
+
+
+			newPrevPosition.y = min(max(newPrevPosition.y, -screenSize.y/2 +  Point.collisionPadding),screenSize.y/2 -  Point.collisionPadding)
 			newPrevPosition.x = min(max(newPrevPosition.x, -screenSize.x/2 +  Point.collisionPadding),screenSize.x/2 -  Point.collisionPadding)
 
 			self.prevPosition = newPrevPosition
@@ -106,12 +118,13 @@ def UpdateCycle(points, constraints, trt):
 
 	avFps = 1/fixedDeltaTime
 	deltaTime = fixedDeltaTime
+	lastDeltaTime = fixedDeltaTime
 	while SimRunning:
 		screenSize = Vector2(window_width(),window_height())
 		start = time.time()
 		trt.clear()
 		for point in points:
-			point.EulerStep(deltaTime)
+			point.EulerStep(deltaTime,lastDeltaTime)
 		if(draggedPoint != None):
 			target = Vector2(canvas.winfo_pointerx() - canvas.winfo_rootx(), -(canvas.winfo_pointery() - canvas.winfo_rooty()))
 			
@@ -131,6 +144,7 @@ def UpdateCycle(points, constraints, trt):
 		update()
 		end = time.time()
 		executionTime = end - start
+		lastDeltaTime = deltaTime
 		deltaTime = max(executionTime,fixedDeltaTime)
 		avFps = (avFps + 1/deltaTime)/2
 		print(avFps)
@@ -269,6 +283,26 @@ def ToggleSim():
 		SimRunning = True
 		DisableEditor()
 		UpdateCycle(points, constraints, trt)
+def AddCircle(radius, segments):
+	global points, constraints
+	circlePoints = []
+	circleConstraints = []
+	# target = Vector2(0,0)
+	screen = Vector2(window_width(),window_height())
+	target = Vector2(canvas.winfo_pointerx() - canvas.winfo_rootx(), -(canvas.winfo_pointery() - canvas.winfo_rooty()))
+	target.y += screen.y*0.5
+	target.x -= screen.x*0.5
+	centerPoint = Point(target)
+	crcAngleStep = math.pi*2/segments
+	for i in range(segments):
+		circlePoints.append(Point(Vector2(target.x + math.cos(i*crcAngleStep)*radius, target.y + math.sin(i*crcAngleStep)*radius)))
+	for i in range(-1,len(circlePoints)-1):
+		circleConstraints.append(Constraint(circlePoints[i], circlePoints[i+1]))
+		circleConstraints.append(Constraint(circlePoints[i], centerPoint))
+	circlePoints.append(centerPoint)
+	points += circlePoints
+	constraints += circleConstraints
+	RedrawScene()
 
 def AddMatrix(rows, columns, spacing):
 	global points, constraints
@@ -288,9 +322,10 @@ def AddMatrix(rows, columns, spacing):
 			if(i < (rows - 1)):
 				matConstraints.append(Constraint(matPoints[columns*i + j],matPoints[columns*i+j+columns]))
 	constraints += matConstraints
-AddMatrix(15,5,15)
+# AddMatrix(15,5,15)
 
-
+def AddDefCircle():
+	AddCircle(45,8)
 def EnableEditor():
 	global draggedPoint, draggedPointPrevState
 	if(draggedPoint != None):
@@ -301,12 +336,14 @@ def EnableEditor():
 	screen.onclick(AddPointAt,  btn=1)
 	screen.onclick(RemovePointAt, btn=2)
 	screen.onclick(CreateConstraintTo, btn=3)
+	screen.onkey(AddDefCircle, "c")
 	RedrawScene()
 
 def DisableEditor():
 	screen.onclick(ToggleDrag, btn=1)
 	screen.onclick(None, btn=2)
 	screen.onclick(None, btn=3)
+	screen.onkey(None, "c")
 
 
 EnableEditor()
