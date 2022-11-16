@@ -322,7 +322,7 @@ def AddMatrix(rows, columns, spacing):
 			if(i < (rows - 1)):
 				matConstraints.append(Constraint(matPoints[columns*i + j],matPoints[columns*i+j+columns]))
 	constraints += matConstraints
-# AddMatrix(15,5,15)
+AddMatrix(15,5,15)
 
 def AddDefCircle():
 	AddCircle(45,8)
