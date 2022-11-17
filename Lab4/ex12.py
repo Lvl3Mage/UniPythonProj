@@ -7,22 +7,23 @@ def CheckSudokuSquare(mat, coorX, coorY):
 		j = 0
 		while j < 3 and validSum:
 			val = mat[i+coorY][j+coorX]
-			validSum = val not in foundDigits # seems to func correctly but chec
+			validSum = val not in foundDigits
 			foundDigits.append(val)
 			j+=1
 		i+=1
-	print("")
 	return validSum
 def isSudoku(mat):
-	validSum = True
+	valid= True
 	i = 0
-	while i < len(mat) and validSum:
+	while i < len(mat) and valid:
 		j = 0
-		while j < len(mat[i]) and validSum:
-			validSum = CheckSudokuSquare(mat, j, i) # returns False for some reason 
+		while j < len(mat[i]) and valid:
+			valid = CheckSudokuSquare(mat, j, i) 
 			j+=3
 		i+=3
-	return validSum
+	if valid:
+		valid = isLatinSquare(mat)
+	return valid
 if __name__ == '__main__':
 	sudoku = [
 		[5,3,4,6,7,8,9,1,2],
@@ -33,6 +34,6 @@ if __name__ == '__main__':
 		[7,1,3,9,2,4,8,5,6],
 		[9,6,1,5,3,7,2,8,4],
 		[2,8,7,4,1,9,6,3,5],
-		[3,4,5,2,8,6,1,7,8]
+		[3,4,5,2,8,6,1,7,9]
 	]
 	print(isSudoku(sudoku))
