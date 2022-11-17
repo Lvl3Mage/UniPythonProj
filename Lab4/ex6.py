@@ -1,6 +1,6 @@
 from test_module import test
 from ex4 import ContentGC
-from ex5 import MaxRepetitions
+from ex5 import MaxRepetitionsCAG
 
 def Menu(menuTitle, menuItems, menuPrompt="Please select one of the options listed above: ", menuError="Option not valid"):
     print(menuTitle)
@@ -15,8 +15,7 @@ def Menu(menuTitle, menuItems, menuPrompt="Please select one of the options list
         if(userInput not in menuOptions):
             print(menuError)
     return userInput
-def MaxRepetitionsCAG(dnaString): # an alias for MaxRepetitions(dnaString, "CAG")
-    return MaxRepetitions(dnaString, "CAG")
+
     
 if __name__== '__main__':
     # this would be much easier with a dict

@@ -18,16 +18,17 @@ def MaxRepetitions(string, query):
 				maxOccurrences = occurrences
 		i+=1
 	if(maxOccurrences == 0):
-		return None
+		maxOccurrences = None
 	return maxOccurrences
 	# El código de la función debe ir aquí
-
+def MaxRepetitionsCAG(dnaString): # an alias for MaxRepetitions(dnaString, "CAG")
+    return MaxRepetitions(dnaString, "CAG")
 # –- Unit tests –-
 if __name__== '__main__':
 	  
-	test(MaxRepetitions('GACGAC', 'CAG') == None)
-	test(MaxRepetitions('CAGCAG', 'CAG') == 2)
-	test(MaxRepetitions('TACGTACGTAT', 'CAG') == None)
-	test(MaxRepetitions('CAGCAGTACCTCAGACGT', 'CAG') == 2)
-	test(MaxRepetitions('GATCGATCGATGCTAGCTAGCGCATC', 'CAG') == None)
-	test(MaxRepetitions('TACTCAGCAGGATGCAGCAGCAGCAGCAG', 'CAG') == 5)
+	test(MaxRepetitionsCAG('GACGAC') == None)
+	test(MaxRepetitionsCAG('CAGCAG') == 2)
+	test(MaxRepetitionsCAG('TACGTACGTAT') == None)
+	test(MaxRepetitionsCAG('CAGCAGTACCTCAGACGT') == 2)
+	test(MaxRepetitionsCAG('GATCGATCGATGCTAGCTAGCGCATC') == None)
+	test(MaxRepetitionsCAG('TACTCAGCAGGATGCAGCAGCAGCAGCAG') == 5)

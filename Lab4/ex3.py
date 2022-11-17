@@ -1,21 +1,19 @@
 from test_module import test
 from ex2 import Divisors
-
+def ListSum(nums):
+	total = 0
+	for num in nums:
+		total += num
+	return total
 def areFriendly(n1,n2):
 	divs1 = Divisors(n1)
-	sumDivs1 = 0
-	for i in range(len(divs1)-1):
-		sumDivs1 += divs1[i]
-
-	if(sumDivs1 != n2):
-		return False
-
-	divs2 = Divisors(n2)
-	sumDivs2 = 0
-	for i in range(len(divs2)-1):
-		sumDivs2 += divs2[i]
-	return sumDivs2 == n1
-	# El código de la función debe ir aquí
+	sumDivs1 = ListSum(divs1[:-1])
+	friendly = sumDivs1 == n2
+	if(friendly):
+		divs2 = Divisors(n2)
+		sumDivs2 = ListSum(divs2[:-1])
+		friendly = sumDivs2 == n1
+	return friendly
 
 # –- Unit tests –-
 if __name__== '__main__':

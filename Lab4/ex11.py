@@ -1,7 +1,30 @@
 from test_module import test
 
-def es_cuadrado_latino (matriz):
-    # El código de la función debe ir aquí
+def isLatinSquare(mat):
+    isLat = True
+    idY = 0
+    while(idY < len(mat) and isLat):
+        idX = 0
+        while(idX < len(mat[idY]) and isLat):
+            # for every element in the matrix
+            val = mat[idY][idX]
+            isLat = val > 0 and val <= len(mat)
+            i = idX+1
+
+            #check elements to the right in the current row for identical values
+            while(i < len(mat[idY]) and isLat):
+                isLat = mat[idY][i] != val
+                i+=1
+            
+            i = idY+1
+            #check elements below in thr current column for identical values
+            while(i < len(mat) and isLat):
+                isLat = mat[i][idX] != val
+                i+=1
+            
+            idX += 1
+        idY +=1
+    return isLat
 
 # –- Unit tests –-
 if __name__== '__main__':
@@ -30,10 +53,10 @@ if __name__== '__main__':
              [3,4,1,2], \
              [1,3,2,4]]
 
-    test(es_cuadrado_latino(matriz2) == True)
-    test(es_cuadrado_latino(matriz3) == True)
-    test(es_cuadrado_latino(matriz4) == True)
-    test(es_cuadrado_latino(matriz5) == False)
-    test(es_cuadrado_latino(matriz6) == False)
-    test(es_cuadrado_latino(matriz7) == False)
-    test(es_cuadrado_latino(matriz8) == False)
+    test(isLatinSquare(matriz2) == True)
+    test(isLatinSquare(matriz3) == True)
+    test(isLatinSquare(matriz4) == True)
+    test(isLatinSquare(matriz5) == False)
+    test(isLatinSquare(matriz6) == False)
+    test(isLatinSquare(matriz7) == False)
+    test(isLatinSquare(matriz8) == False)
