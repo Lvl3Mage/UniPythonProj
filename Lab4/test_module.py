@@ -1,5 +1,4 @@
 import sys
-#impressive, we got like unit tests
 def test(did_pass):
     " Print the result of a test. "
     linenum = sys._getframe(1).f_lineno # Get the caller’s line number.
