@@ -4,7 +4,7 @@ from ex3 import ListSum
 def isSocial(nums):
     i = -1
     social = True
-    while i < len(nums)-1 and social:
+    while i < len(nums)-1 and social: # cannot use ex 3 since the areFriendly function is bidirectional
         social = ListSum(Divisors(nums[i])[:-1]) == nums[i+1]
         i+=1
     return social

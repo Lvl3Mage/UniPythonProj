@@ -31,13 +31,12 @@ def PrintMatrixUniform(mat):
 	for row in mat:
 		for val in row:
 			totalSpacing = targetWidth - len(str(val))
+			# #for central allignment
 			# halfSpacing = math.floor(totalSpacing/2)
 			# cell =' '*(halfSpacing) + str(val) + ' '*(totalSpacing-halfSpacing + 1)
 			cell =str(val) + ' '*(totalSpacing + 1)
 			print(cell, end='')
 		print('')
-
-	# El código de la función debe ir aquí
 
 if __name__== '__main__':
 	cont = True

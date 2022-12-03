@@ -19,14 +19,12 @@ def Menu(menuTitle, menuItems, menuPrompt="Please select one of the options list
     
 if __name__== '__main__':
     # this would be much easier with a dict
-    actions = [('a',MaxRepetitionsCAG), ('b', ContentGC)]
     menuItems = [('a', 'Max repetitions of the "CAG" sequence'), ('b', 'Percentage content of the values G and C')]
     
+    userInput = Menu("DNA operations", menuItems)
 
     dnaString = input("Enter a dna string: ").upper()
-
-    userInput = Menu("DNA operations", menuItems)
-    for action in actions:
-        if(action[0] == userInput):
-            print("The result of the selected operation was '{0}'".format(action[1](dnaString)))
-            #break
+    if(userInput == "a"):
+        print("The max consequtive repetitions of the 'CAG' string were {0}".format(MaxRepetitionsCAG(dnaString)))
+    else:
+        print("The combined percentage of the G and C nodes was {0}%".format(ContentGC(dnaString)))
