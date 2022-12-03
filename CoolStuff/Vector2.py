@@ -32,6 +32,12 @@ class Vector2:
 		return (other - self).LengthSqr() <= delta**2
 	def Clone(self):
 		return Vector2(self.x, self.y)
+	def RotateByAngle(self, angle):
+		angle = math.radians(angle)
+		_x = self.x
+		_y = self.y
+		self.x = _x * math.cos(angle) - _y*math.sin(angle)
+		self.y = _x * math.sin(angle) + _y*math.cos(angle)
 	@staticmethod
 	def zero():
 		return Vector2(0,0)

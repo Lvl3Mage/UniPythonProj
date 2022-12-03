@@ -321,6 +321,8 @@ def AddMatrix(rows, columns, spacing):
 				matConstraints.append(Constraint(matPoints[columns*i+ j],matPoints[columns*i+j+1]))
 			if(i < (rows - 1)):
 				matConstraints.append(Constraint(matPoints[columns*i + j],matPoints[columns*i+j+columns]))
+				# if(j < columns-1):
+				# 	matConstraints.append(Constraint(matPoints[columns*i + j],matPoints[columns*i+j+columns+1]))
 	constraints += matConstraints
 AddMatrix(15,5,15)
 
