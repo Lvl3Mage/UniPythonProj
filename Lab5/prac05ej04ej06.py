@@ -64,13 +64,12 @@ def CloneMat(mat):
 			row.append(mat[i][j])
 		newMat.append(row)
 	return newMat
-hist = []
+
 def RevealCellRecurs(tblVisible, tblHidden, x, y, origin): # returns the maximum distance reached from origin point
 	tblVisible[x][y] = tblHidden[x][y]
 	distSqr = (origin[0] - x)**2 + (origin[1] - y)**2
 	if(tblHidden[x][y] != 0):
 		return distSqr
-
 	maxDist = distSqr
 	for i in range(-1,2):
 		for j in range(-1,2):
@@ -78,13 +77,17 @@ def RevealCellRecurs(tblVisible, tblHidden, x, y, origin): # returns the maximum
 				cellCoor = (x+i, y+j)
 				#Bounds check
 				if(cellCoor[0] >= 0 and cellCoor[0] < len(tblHidden) and cellCoor[1] >= 0 and cellCoor[1] < len(tblHidden[0])):
-					if(tblVisible[cellCoor[0]][cellCoor[1]] == CHIDDEN): # hidden check
+					cellValue = tblVisible[cellCoor[0]][cellCoor[1]]
+					if(cellValue == CHIDDEN or cellValue == CFLAG): # hidden check
 						maxDist = max(maxDist,RevealCellRecurs(tblVisible,tblHidden,cellCoor[0],cellCoor[1],origin))
 	return maxDist
+
 def RevealCell(tblVisible, tblHidden, x, y): # returns None on loss; otherwise return the max distance reached
 	if(tblHidden[x][y] == CBOMB):
 		return None
 	return RevealCellRecurs(tblVisible, tblHidden, x, y, (x,y))
+
+
 def isGameComplete(tblVisible, tblHidden):
 	for i in range(len(tblVisible)):
 		for j in range(len(tblVisible[i])):
@@ -99,16 +102,23 @@ def DrawTable(screen, tbl, tiles, spacing):
 	for i in range(len(tbl)):
 		for j in range(len(tbl[0])):
 			screen.blit(tiles[str(tbl[i][j])], (i*spacing[0], j*spacing[1]))
+
 def GetClickedCell(tableSpacing, offset, clickPoint):
 	x = math.floor(clickPoint[0]/tableSpacing[0])
 	y = math.floor(clickPoint[1]/tableSpacing[1])
 	return (x,y)
+
 def main():
+
 	sys.setrecursionlimit(9999)
-	tableWidth = 50
-	tableHeight = 35
-	bombAmount = 100
+	#Table init
+	tableWidth = 20
+	tableHeight = 20
+	bombAmount = 1
 	h_tbl, v_tbl = InitTable(tableHeight,tableWidth,bombAmount)
+
+
+
 	pygame.init()
 	
 	# Game speed init
@@ -133,11 +143,16 @@ def main():
 
 	revealDist = 0
 	maxRevealDistSqr = 0
-	curClick = None
+	curRevealOrigin = None
 	displayedTable = CloneMat(v_tbl)
 
 	gameOver = False
+
+
 	gameComplete = False
+	lastClickedCell = None
+	gameCompleteCounter = 0
+
 	gameRunning = True
 	while gameRunning:
 		#Screen clear
@@ -147,12 +162,15 @@ def main():
 		for event in pygame.event.get():
 			if event.type == QUIT:
 				gameRunning = False
-			if event.type == pygame.MOUSEBUTTONDOWN and not gameOver and not gameComplete and curClick == None:
-				mousePos = pygame.mouse.get_pos()
+			if event.type == pygame.MOUSEBUTTONDOWN and not gameOver and not gameComplete and curRevealOrigin == None:
+				mousePosUnclamped = pygame.mouse.get_pos()
+				mousePos = [mousePosUnclamped[0], mousePosUnclamped[1]]
+				mousePos[0] = max(min(mousePos[0], (len(v_tbl)-1) * tileSpacing[0]), 0)
+				mousePos[1] = max(min(mousePos[1], (len(v_tbl[0])-1) * tileSpacing[1]), 0)
 				clickedCell = GetClickedCell(tileSpacing, (0,0), mousePos)
 				
 				if event.button == 1:
-					curClick = clickedCell
+					curRevealOrigin = clickedCell
 					revealDist = 0
 					distSqr = RevealCell(v_tbl,h_tbl,clickedCell[0],clickedCell[1])
 					if(distSqr == None):
@@ -163,23 +181,44 @@ def main():
 
 				else:
 					ToggleFlag(v_tbl, clickedCell[0], clickedCell[1])
-					displayedTable = v_tbl
+					displayedTable = CloneMat(v_tbl)
 				if(not gameOver):
 					gameComplete = isGameComplete(v_tbl, h_tbl)
+					if(gameComplete):
+						lastClickedCell = clickedCell
+
+
+
 		#Screen draw
-		if(curClick != None):
+		if(gameComplete):
+			if(curRevealOrigin == None):
+				curRevealOrigin = lastClickedCell
+				revealDist = 0
+				maxRevealDistSqr = len(v_tbl)**2+ len(v_tbl[0])**2
+				gameCompleteCounter += 1
+				if(gameCompleteCounter > 8):
+					gameCompleteCounter = 0
+				for i in range(len(v_tbl)):
+					for j in range(len(v_tbl[i])):
+						v_tbl[i][j] = str(int(gameCompleteCounter))
+				
+			
+
+		if(curRevealOrigin != None):
 			revealDist+=1
 			for i in range(len(displayedTable)):
 				for j in range(len(displayedTable[i])):## some optimizations could be made for this loop to oly iterate over cells in range
 					vect = [i,j]
-					vect[0] = curClick[0] - vect[0]
-					vect[1] = curClick[1] - vect[1]
+					vect[0] = curRevealOrigin[0] - vect[0]
+					vect[1] = curRevealOrigin[1] - vect[1]
 					if(vect[0]**2 + vect[1]**2 <= revealDist**2):
 						displayedTable[i][j] = v_tbl[i][j]
 			if(revealDist**2 > maxRevealDistSqr): # stops when maxDistance is reached
 				displayedTable = CloneMat(v_tbl)
-				curClick = None
+				curRevealOrigin = None
 				revealDist = 0
+
+
 		DrawTable(screen, displayedTable, tiles, tileSpacing)
 
 		
