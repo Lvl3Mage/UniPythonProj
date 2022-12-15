@@ -3,16 +3,17 @@ import random
 import math
 import time
 from Vector2 import Vector2
+from Mathf import Mathf
 class Body:
 	G = 2000000
 	attachedSim = None
-	def __init__(self,position,radius, mass, velocity = Vector2.zero()):
+	def __init__(self,position,radius, mass, velocity = Vector2.zero(), bounciness = 0.8):
 		self.position = position
 		self.radius = radius
 		self.velocity = velocity
 		self.mass = mass
+		self.bounciness = bounciness
 	def NewtoneanGrav(self):
-		global Energy
 		bodies = self.attachedSim._bodies
 		for body in bodies:
 			if(body != self):
@@ -21,13 +22,10 @@ class Body:
 				# if(dist < 10):
 				# 	continue
 				accel = self.G*body.mass/(dist**2)
-				# Energy -= (self.G*self.mass*body.mass)/dist
 				self.velocity += delta.Normalized() * accel*self.attachedSim.deltaTime
 	def EulerStep(self):
-		global Energy
-		self.NewtoneanGrav()
+		# self.NewtoneanGrav()
 		self.position += self.velocity*self.attachedSim.deltaTime
-		Energy += self.mass*(self.velocity.Length()**2)*0.5
 		
 		# self.velocity += self.position*self.attachedSim.deltaTime*-1
 	def Draw(self, trt):
@@ -39,15 +37,15 @@ class Body:
 	def AttachToSim(self, sim):
 		self.attachedSim = sim
 
-Energy = 0
 class Sim:
 	fixedDeltaTime = 0.02
-	precision = 1
+	timeScale = 0.07
+	stability = 2.5
 
 
 	_bodies = []
 	def __init__(self):
-		self.deltaTime = self.fixedDeltaTime
+		self.deltaTime = self.fixedDeltaTime*self.timeScale/self.stability
 		pass
 	def AddBody(self, body):
 		self._bodies.append(body)
@@ -72,15 +70,22 @@ class Sim:
 		nVelA = Vector2.Dot(bodyA.velocity, normal)
 		nVelB = Vector2.Dot(bodyB.velocity,normal)
 
-		_nVelA = self.ColVelNonElastic(nVelA, bodyA.mass, nVelB, bodyB.mass)
-		_nVelB = self.ColVelNonElastic(nVelB, bodyB.mass, nVelA, bodyA.mass)
+
+		avBounciness = (bodyA.bounciness + bodyB.bounciness)/2
+		_nVelNonElasticAB = self.ColVelNonElastic(nVelA, bodyA.mass, nVelB, bodyB.mass)
+
+		_nVelElasticAB = self.ColVelElastic(nVelA, bodyA.mass, nVelB, bodyB.mass)
+		_nVelElasticBA = self.ColVelElastic(nVelB, bodyB.mass, nVelA, bodyA.mass)
+
+		_nVelA = Mathf.Lerp(_nVelNonElasticAB, _nVelElasticAB, avBounciness)
+		_nVelB = Mathf.Lerp(_nVelNonElasticAB, _nVelElasticBA, avBounciness)
 
 		tVelA = Vector2.Dot(bodyA.velocity, tangent)
 		bodyA.velocity = tangent*tVelA + normal*_nVelA
 
 		tVelB = Vector2.Dot(bodyB.velocity, tangent)
 		bodyB.velocity = tangent*tVelB + normal*_nVelB
-	def ResolveStatic(self):
+	def ResolveCollisions(self):
 		for body in self._bodies:
 			for other in self._bodies:
 				if(other == body):
@@ -98,37 +103,35 @@ class Sim:
 					self.ResolveDynamic(body,other,normal)
 
 	def UpdateCycle(self):
-		global Energy
 		trt = Turtle()
 		tracer(0, 0)
 		trt.hideturtle()
 		while trt:
 			start = time.time()
-			Energy = 0
 			self.UpdateEuler()
-			self.ResolveStatic()
+			for i in range(10):
+				self.ResolveCollisions()
 
 			self.Draw(trt)
-			print(Energy)
 			end = time.time()
 			executionTime = end - start
-			self.deltaTime = max(executionTime,self.fixedDeltaTime*self.precision)/5
-			# print(max(self.fixedDeltaTime*self.precision - executionTime, 0))
+			self.deltaTime = max(executionTime,self.fixedDeltaTime*self.stability)*self.timeScale/self.stability
+			print(1/max(self.fixedDeltaTime*self.stability, executionTime))
 
-			time.sleep(max(self.fixedDeltaTime*self.precision - executionTime, 0))
+			time.sleep(max(self.fixedDeltaTime*self.stability - executionTime, 0))
 
 def RandomVector():
 	return Vector2(random.uniform(-1.0,1.0),random.uniform(-1.0,1.0));
 sim = Sim()
 
 # sim.AddBody(Body(Vector2(0,0),15,5))
-sim.AddBody(Body(Vector2(-100,0), 5, 5, Vector2(0,100)))
-sim.AddBody(Body(Vector2(100,0), 5, 5, Vector2(0,-100)))
-# sim.AddBody(Body(Vector2(-100,0),15,15, Vector2.right()*600))
-# for i in range(2):
-# 	vec = Vector2((i%10)*15*2,(i//10)*15*2 - 15*5)
-# 	sim.AddBody(Body(vec, 5, 5))
-	# print(RandomVector())
+# sim.AddBody(Body(Vector2(-100,0), 5, 5, Vector2(0,100)))
+# sim.AddBody(Body(Vector2(100,0), 5, 5, Vector2(0,-100)))
+sim.AddBody(Body(Vector2(-100,0),15,15, Vector2.right()*1000))
+for i in range(50):
+	vec = Vector2((i%10)*15*2,(i//10)*15*2 - 15*5)
+	sim.AddBody(Body(vec, 10, 5))
+	print(RandomVector())
 sim.UpdateCycle()
 
 
