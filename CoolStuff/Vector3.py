@@ -46,7 +46,7 @@ class Vector3:
 		return Vector3(-1,0,0)
 	@staticmethod
 	def forward():
-		return Vector3(0,1,0)
+		return Vector3(0,0,1)
 	@staticmethod
-	def forward():
-		return Vector3(0,-1,0)
+	def backward():
+		return Vector3(0,0,-1)

@@ -39,6 +39,9 @@ class Vector2:
 		self.x = _x * math.cos(angle) - _y*math.sin(angle)
 		self.y = _x * math.sin(angle) + _y*math.cos(angle)
 	@staticmethod
+	def Dot(vectA, vectB):
+		return vectA.x*vectB.x + vectA.y*vectB.y
+	@staticmethod
 	def zero():
 		return Vector2(0,0)
 	@staticmethod
