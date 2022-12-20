@@ -7,7 +7,7 @@ from Mathf import Mathf
 class Body:
 	G = 2000000
 	attachedSim = None
-	def __init__(self,position,radius, mass, velocity = Vector2.zero(), bounciness = 0.8):
+	def __init__(self,position,radius, mass, velocity = Vector2.zero(), bounciness = 1):
 		self.position = position
 		self.radius = radius
 		self.velocity = velocity
@@ -39,8 +39,8 @@ class Body:
 
 class Sim:
 	fixedDeltaTime = 0.02
-	timeScale = 0.07
-	stability = 2.5
+	timeScale = 1
+	stability = 1
 
 
 	_bodies = []
@@ -127,7 +127,7 @@ sim = Sim()
 # sim.AddBody(Body(Vector2(0,0),15,5))
 # sim.AddBody(Body(Vector2(-100,0), 5, 5, Vector2(0,100)))
 # sim.AddBody(Body(Vector2(100,0), 5, 5, Vector2(0,-100)))
-sim.AddBody(Body(Vector2(-100,0),15,15, Vector2.right()*1000))
+sim.AddBody(Body(Vector2(-100,0),15,15, Vector2.right()*600))
 for i in range(50):
 	vec = Vector2((i%10)*15*2,(i//10)*15*2 - 15*5)
 	sim.AddBody(Body(vec, 10, 5))

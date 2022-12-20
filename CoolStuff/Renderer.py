@@ -30,7 +30,7 @@ tris = [
 
 	(4,5,6),(6,7,4),
 ]
-zOffset = 250
+zOffset = 150
 FOV = 100
 trt.fillcolor(0.4, 0.4, 0.4)
 while trt:
