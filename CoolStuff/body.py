@@ -7,7 +7,7 @@ from Mathf import Mathf
 class Body:
 	G = 2000000
 	attachedSim = None
-	def __init__(self,position,radius, mass, velocity = Vector2.zero(), bounciness = 1):
+	def __init__(self, ,radius, mass, velocity = Vector2.zero(), bounciness = 1):
 		self.position = position
 		self.radius = radius
 		self.velocity = velocity

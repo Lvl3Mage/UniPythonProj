@@ -109,7 +109,7 @@ def main():
 			if event.type==pygame.MOUSEBUTTONDOWN and event.button==1:
 				(click_pos_x,click_pos_y)=pygame.mouse.get_pos()
 				dentro=punto_dentro(cat_x,cat_y,cat_size_x,cat_size_y,click_pos_x,click_pos_y)
-				print(dentro)
+				# print(dentro)
 				if dentro:
 					direction = random_direction(previous_direction)
 			
